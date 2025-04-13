@@ -20,16 +20,15 @@ fi
 # Get the current date and time for file naming
 CURRENT_DATETIME=$(date +%Y%m%d_%H%M%S)
 
-# Function to record from a video device with robust options
-record_video_robust() {
+# Function to record from a video device with power-saving options
+record_video_powersaving() {
     local DEVICE=$1
     local OUTPUT_FILE=$2
 
     if [ -e "$DEVICE" ]; then
-        echo "Recording (robust mode) from $DEVICE to $OUTPUT_FILE..."
+        echo "Recording (power-saving mode) from $DEVICE to $OUTPUT_FILE..."
         ffmpeg -f v4l2 -framerate $FRAMERATE -video_size $RESOLUTION \
-        -i "$DEVICE" -c:v libx264 -preset ultrafast -tune zerolatency \
-        -flush_packets 1 -f matroska "$OUTPUT_FILE" &
+        -c:v libx264 -preset veryfast -f matroska "$OUTPUT_FILE" &
     else
         echo "Device $DEVICE not found. Skipping."
     fi
@@ -47,10 +46,10 @@ cleanup() {
 trap cleanup SIGINT SIGTERM
 
 # Record from /dev/video0 to [currentdateandtime]dash.mkv
-record_video_robust "/dev/video0" "$OUTPUT_DIR/${CURRENT_DATETIME}dash.mkv"
+record_video_powersaving "/dev/video0" "$OUTPUT_DIR/${CURRENT_DATETIME}dash.mkv"
 
 # Record from /dev/video2 to [currentdateandtime]gap.mkv
-record_video_robust "/dev/video2" "$OUTPUT_DIR/${CURRENT_DATETIME}gap.mkv"
+record_video_powersaving "/dev/video2" "$OUTPUT_DIR/${CURRENT_DATETIME}gap.mkv"
 
 # Wait for all background processes (recording) to finish
 wait
