@@ -1,3 +1,4 @@
+raspberrypi@raspberrypi:~ $ cat Desktop/dashcam.sh
 #!/bin/bash
 
 # Set default resolution and frame rate
@@ -7,8 +8,13 @@ FRAMERATE=30
 # Set the output directory
 OUTPUT_DIR="/media/raspberrypi/Dashcam"
 
-# Ensure the output directory exists
+# Ensure the USB drive is mounted and the output directory exists
 if [ ! -d "$OUTPUT_DIR" ]; then
+    if ! mountpoint -q /media/raspberrypi; then
+        echo "USB drive not mounted. Exiting."
+        exit 1
+    fi
+
     echo "Output directory $OUTPUT_DIR does not exist. Creating it..."
     mkdir -p "$OUTPUT_DIR"
     if [ $? -ne 0 ]; then
@@ -45,6 +51,12 @@ cleanup() {
 }
 
 trap cleanup SIGINT SIGTERM
+
+# Check if at least one camera is available
+if ! ls /dev/video0 /dev/video2 >/dev/null 2>&1; then
+    echo "No cameras are available. Exiting."
+    exit 1
+fi
 
 # Record from /dev/video0 to [currentdateandtime]dash.mkv
 record_video_robust "/dev/video0" "$OUTPUT_DIR/${CURRENT_DATETIME}dash.mkv"
